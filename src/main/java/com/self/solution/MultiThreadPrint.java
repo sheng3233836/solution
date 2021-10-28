@@ -24,6 +24,10 @@ public class MultiThreadPrint {
      * 共享状态
      */
     private int state = 0;
+    /**
+     * 完成状态
+     */
+    private boolean finish = false;
 
     public MultiThreadPrint(int times) {
         this.times = times;
@@ -48,6 +52,13 @@ public class MultiThreadPrint {
                 lock.unlock();
             }
         }
+        // 最后线程
+        if (index == 2) {
+            finish = true;
+        }
     }
 
+    public boolean isFinish() {
+        return finish;
+    }
 }

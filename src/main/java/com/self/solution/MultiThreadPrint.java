@@ -1,11 +1,5 @@
 package com.self.solution;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -22,42 +16,31 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class MultiThreadPrint {
     private Lock lock = new ReentrantLock();
+    /**
+     * 循环次数
+     */
+    private int times;
+    /**
+     * 共享状态
+     */
     private int state = 0;
-    private int count = 0;
 
-    public void solution(int count) {
-        this.count = count;
-        ThreadFactory threadFactory = new ThreadFactory() {
-            private AtomicInteger count = new AtomicInteger(0);
-
-            @Override
-            public Thread newThread(Runnable r) {
-                return new OrderThread(count.incrementAndGet());
-            }
-        };
-        ExecutorService executorService = new ThreadPoolExecutor(3, 3,
-                0L, TimeUnit.MILLISECONDS,
-                new SynchronousQueue<>(), threadFactory);
-        executorService.execute(() -> print());
-        executorService.execute(() -> print());
-        executorService.execute(() -> print());
+    public MultiThreadPrint(int times) {
+        this.times = times;
     }
 
-    class OrderThread extends Thread {
-        private int index;
-        private String outStr;
-
-        public OrderThread(int index) {
-            this.index = index;
-            this.outStr = String.valueOf(index + 1);
-        }
+    public void print() {
+        new Thread(() -> doPrint(0, "1")).start();
+        new Thread(() -> doPrint(1, "2")).start();
+        new Thread(() -> doPrint(2, "3")).start();
     }
-    private void print() {
-        for (int i = 0; i < count; ) {
+
+    private void doPrint(int index, String printString) {
+        for (int i = 0; i < times; ) {
             lock.lock();
             try {
                 if (state % 3 == index) {
-                    System.out.print(outStr);
+                    System.out.print(printString);
                     state++;
                     i++;
                 }

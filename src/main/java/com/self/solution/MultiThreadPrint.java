@@ -1,5 +1,6 @@
 package com.self.solution;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -24,22 +25,24 @@ public class MultiThreadPrint {
      * 共享状态
      */
     private int state = 0;
-    /**
-     * 完成状态
-     */
-    private boolean finish = false;
 
     public MultiThreadPrint(int times) {
         this.times = times;
     }
 
     public void print() {
-        new Thread(() -> doPrint(0, "1")).start();
-        new Thread(() -> doPrint(1, "2")).start();
-        new Thread(() -> doPrint(2, "3")).start();
+        CountDownLatch countDownLatch = new CountDownLatch(3);
+        new Thread(() -> doPrint(0, "1", countDownLatch)).start();
+        new Thread(() -> doPrint(1, "2", countDownLatch)).start();
+        new Thread(() -> doPrint(2, "3", countDownLatch)).start();
+        try {
+            countDownLatch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
-    private void doPrint(int index, String printString) {
+    private void doPrint(int index, String printString, CountDownLatch countDownLatch) {
         for (int i = 0; i < times; ) {
             lock.lock();
             try {
@@ -52,13 +55,6 @@ public class MultiThreadPrint {
                 lock.unlock();
             }
         }
-        // 最后线程
-        if (index == 2) {
-            finish = true;
-        }
-    }
-
-    public boolean isFinish() {
-        return finish;
+        countDownLatch.countDown();
     }
 }
